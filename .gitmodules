@@ -1,0 +1,6 @@
+[submodule "command"]
+	path = command
+	url = git@github.com:xllily/code-exec-cmd.git
+[submodule "worker"]
+	path = worker
+	url = git@github.com:xllily/code-exec-worker.git
