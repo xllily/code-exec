@@ -137,3 +137,5 @@ dist
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+/codes/**/*
