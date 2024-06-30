@@ -1,8 +1,8 @@
-![program-design](program-design.png)
+![program-design](program-design.svg)
 > Currently supported only Python code
 > TODO: other codes execution
 
-### System Architecture Design: Python Code Execution Service
+### NodeJS Service That Executes Python Code
 
 #### Overview
 The system allows frontend clients to submit Python code for execution on the server-side. It consists of two microservices: the Command Service and the Worker Service. The Command Service handles code submission and job management, while the Worker Service executes the submitted code asynchronously.
@@ -11,27 +11,28 @@ The system allows frontend clients to submit Python code for execution on the se
 
 1. **Command Service**
    - Responsible for receiving code submissions from the frontend and managing job execution.
-   - Stores submitted Python code and job metadata in SQLite.
-   - Enqueues job IDs into a queue (e.g., RabbitMQ, Redis Queue) for asynchronous processing by the Worker Service.
+   - Stores submitted Python code and job metadata in MongoDB.
+   - Enqueues job IDs into the `code-save` queue (Redis) for asynchronous processing by the Worker Service.
    - Provides RESTful APIs for code submission and result retrieval.
 
 2. **Worker Service**
-   - Listens to the job queue for new job IDs.
-   - Retrieves Python code and job details from SQLite based on the received job ID.
-   - Executes the Python code in a secure environment (e.g., using Docker for sandboxing).
-   - Captures execution output and errors.
-   - Stores execution results in MongoDB.
-   - Continuously processes incoming jobs from the queue.
+   - Listens to the `code-save` queue for new job IDs.
+   - Saves Python code as a file and enqueues the job ID into the `code-exec` queue.
+   - Listens to the `code-exec` queue for job execution.
+   - Executes the Python code, captures output/errors, and stores the results in MongoDB.
+   - Continuously processes incoming jobs from both queues.
 
 3. **Databases**
-   - **SQLite**: Stores submitted Python code and job metadata (job ID, status, etc.).
-   - **MongoDB**: Stores execution results (output, errors, etc.) associated with each job.
+   - **MongoDB**: Stores job metadata (job ID, status, etc.) and execution results (output, errors, etc.).
+
+4. **Queues**
+   - **Redis**: Manages the `code-save` and `code-exec` queues for asynchronous job processing.
 
 #### Workflow
 
 1. **Code Submission Workflow**
    - Frontend submits Python code to `/submit-code` endpoint of Command Service.
-   - Command Service stores the code in SQLite, generates a job ID, and enqueues the job ID.
+   - Command Service stores the code in MongoDB, generates a job ID, and enqueues the job ID in the `code-save` queue.
    - Returns the job ID to the frontend.
 
 2. **Execution Result Retrieval**
@@ -39,10 +40,14 @@ The system allows frontend clients to submit Python code for execution on the se
    - Command Service retrieves execution results from MongoDB once available.
 
 3. **Worker Service Workflow**
-   - Worker Service listens to the job queue for new jobs.
-   - Upon receiving a job ID, retrieves Python code and metadata from SQLite.
-   - Executes the code, captures output/errors, and stores results in MongoDB.
-   - Updates job status in SQLite and dequeues the job ID.
+   - **Code Save Workflow**:
+     - Worker Service listens to the `code-save` queue for new jobs.
+     - Upon receiving a job ID, saves Python code as a file.
+     - Enqueues the job ID in the `code-exec` queue.
+   - **Code Exec Workflow**:
+     - Worker Service listens to the `code-exec` queue for new jobs.
+     - Upon receiving a job ID, retrieves the Python code file and executes it.
+     - Captures output/errors and stores results in MongoDB.
 
 #### Security Considerations
 - **Code Execution Sandbox**: Execute Python code in a secure sandbox (e.g., Docker containers) to prevent malicious activities.
@@ -55,9 +60,8 @@ The system allows frontend clients to submit Python code for execution on the se
 
 #### Technologies Used
 - **Node.js (NestJS)**: For building scalable and maintainable backend services.
-- **SQLite**: Lightweight database for storing job metadata.
-- **MongoDB**: NoSQL database for storing execution results.
-- **Message Queue**: (e.g., RabbitMQ, Redis Queue) for managing job queues.
+- **MongoDB**: NoSQL database for storing job metadata and execution results.
+- **Redis**: Message queue for managing job queues (`code-save` and `code-exec`).
 - **Docker**: Containerization for code execution sandboxing.
 
 #### Conclusion
