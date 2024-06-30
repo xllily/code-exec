@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to worker",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9230, // 对应 worker 服务的调试端口
+            "localRoot": "${workspaceFolder}/worker",
+            "remoteRoot": "/usr/src/app",
+            "restart": true
+        },
+        {
+            "name": "Attach to worker replica 1",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9231, // 对应 worker-replica-1 服务的调试端口
+            "localRoot": "${workspaceFolder}/worker",
+            "remoteRoot": "/usr/src/app",
+            "restart": true
+        },
+        {
+            "name": "Attach to worker replica 2",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9232, // 对应 worker-replica-2 服务的调试端口
+            "localRoot": "${workspaceFolder}/worker",
+            "remoteRoot": "/usr/src/app",
+            "restart": true
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+services:
+  redis:
+    image: redis
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+
+  mongo:
+    image: mongo
+    ports:
+      - '${MONGO_PORT}:${MONGO_PORT}'
+    volumes:
+      - mongo-data:/data/db
+
+  command:
+    build:
+      context: ./command
+    ports:
+      - '${COMMAND_PORT}:3000'
+      - '9229:9229'  # 添加调试端口
+    depends_on:
+      - redis
+      - mongo
+    env_file:
+      - .env
+
+  worker:
+    build:
+      context: ./worker
+    ports:
+      - '${WORKER_PORT}:3000'
+      - '9230:9229'  # 添加调试端口
+    depends_on:
+      - redis
+      - mongo
+    env_file:
+      - .env
+
+  worker-replica-1:
+    build:
+      context: ./worker
+    ports:
+      - '${WORKER_REPLICA_1_PORT}:3000'
+      - '9231:9229'  # 添加调试端口
+    depends_on:
+      - redis
+      - mongo
+    env_file:
+      - .env
+
+  worker-replica-2:
+    build:
+      context: ./worker
+    ports:
+      - '${WORKER_REPLICA_2_PORT}:3000'
+      - '9232:9229'  # 添加调试端口
+    depends_on:
+      - redis
+      - mongo
+    env_file:
+      - .env
+
+volumes:
+  mongo-data:
