@@ -1,8 +1,46 @@
-![program-design](program-design.svg)
-> Currently supported only Python code
-> TODO: other codes execution
+## Running
+1. **Docker Setup**
+   - Ensure you have Docker and Docker Compose installed.
+   - Build and start the containers:
+     ```bash
+     docker-compose down # before restart
+     docker-compose up --build
+     ```
 
-### NodeJS Service That Executes Python Code
+2. **Access the Services**
+   - The Command Service will be available at `http://localhost:3000`.
+   - Worker Services will be running on ports `3001`, `3002`, and `3003`.
+
+3. **API Endpoints**
+   - **Submit Code**: POST `/submit-code`
+     ```bash
+     curl --location --request POST 'http://localhost:3000/submit-code' \
+     --header 'Content-Type: application/json' \
+     --data-raw '{
+         "code": "print(\"Hello, World!\")"
+     }'
+     ```
+   - **Get Execution Result**: GET `/exec-result?jobId={jobId}`
+     ```bash
+     curl --location --request GET 'http://localhost:3000/exec-result?jobId={jobId}'
+     ```
+
+4. **Monitoring Queues**
+   - Bull Board is set up to monitor the queues.
+   - Access Bull Board at `http://localhost:3000/admin/queues`.
+
+5. **Load Testing**
+   - Ensure you have `artillery` installed.
+   - Run the testing:
+     ```bash
+      artillery run command/artillery-config.yaml
+     ```
+
+
+### Programming Design
+![program-design](program-design.svg)
+> NodeJS Service That Executes Code, currently supported only Python code
+> TODO: other codes execution
 
 #### Overview
 The system allows frontend clients to submit Python code for execution on the server-side. It consists of two microservices: the Command Service and the Worker Service. The Command Service handles code submission and job management, while the Worker Service executes the submitted code asynchronously.
@@ -66,5 +104,3 @@ The system allows frontend clients to submit Python code for execution on the se
 
 #### Conclusion
 This architecture ensures efficient and scalable execution of Python code submitted from the frontend, providing reliable and timely results to users.
-
-Feel free to expand or modify this document based on specific requirements and additional details of your implementation.
